@@ -55,6 +55,7 @@ export function Footer() {
               <li><Link href="/#contact" className="text-muted-foreground hover:text-secondary font-medium transition-colors">Contact</Link></li>
               <li><Link href="/privacy" className="text-muted-foreground hover:text-secondary font-medium transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-muted-foreground hover:text-secondary font-medium transition-colors">Terms of Use</Link></li>
+              <li><Link href="/consent" className="text-muted-foreground hover:text-secondary font-medium transition-colors">Consent Form</Link></li>
             </ul>
           </div>
 

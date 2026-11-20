@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mic } from "lucide-react";
+import { Loader2, Mic, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CONSENT_FORM_URL, CONSENT_STORAGE_KEY } from "@/lib/consent";
 
 const formSchema = z.object({
   fullName: z.string().min(1, "Name is required"),
@@ -21,6 +24,20 @@ const formSchema = z.object({
 export function ShareStory() {
   const { toast } = useToast();
   const createStory = useCreateStorySubmission();
+  const [consentDone, setConsentDone] = useState(false);
+  const [consentOpen, setConsentOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(CONSENT_STORAGE_KEY) === "1") setConsentDone(true);
+    } catch {}
+  }, []);
+
+  const confirmConsent = () => {
+    try { localStorage.setItem(CONSENT_STORAGE_KEY, "1"); } catch {}
+    setConsentDone(true);
+    setConsentOpen(false);
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -72,7 +89,36 @@ export function ShareStory() {
             {/* Subtle background decoration */}
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-secondary/10 rounded-full blur-[60px] pointer-events-none"></div>
 
-            <Form {...form}>
+            {!consentDone && (
+              <div className="relative z-10 text-center py-8">
+                <ShieldCheck className="w-10 h-10 text-primary mx-auto mb-4" />
+                <h3 className="text-2xl font-serif font-bold text-foreground mb-3">Fill this form before sharing your story</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  We ask everyone to complete a short consent form first. It takes a few minutes.
+                </p>
+                <Button size="lg" className="rounded-full h-12 px-8 text-white" onClick={() => setConsentOpen(true)}>
+                  Fill the consent form
+                </Button>
+                <div className="mt-4">
+                  <button type="button" className="text-sm text-muted-foreground underline" onClick={confirmConsent}>
+                    I have already filled it
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <Dialog open={consentOpen} onOpenChange={setConsentOpen}>
+              <DialogContent className="max-w-2xl w-[95vw] max-h-[92vh] flex flex-col">
+                <DialogHeader>
+                  <DialogTitle className="font-serif">Consent form</DialogTitle>
+                  <DialogDescription>Fill this form before sharing your story, then tap the button below.</DialogDescription>
+                </DialogHeader>
+                <iframe src={CONSENT_FORM_URL} title="The Mouthpiece consent form" className="w-full flex-1 min-h-[55vh] border-0 rounded-lg" />
+                <Button className="rounded-full text-white" onClick={confirmConsent}>I have filled the form</Button>
+              </DialogContent>
+            </Dialog>
+
+            {consentDone && (<Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <FormField
@@ -178,7 +224,7 @@ export function ShareStory() {
                   Apply to Share Your Story
                 </Button>
               </form>
-            </Form>
+            </Form>)}
           </div>
         </div>
       </div>
